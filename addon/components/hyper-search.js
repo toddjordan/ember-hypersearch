@@ -1,154 +1,134 @@
-import Component from '@ember/component';
-import { A as emberArray } from '@ember/array';
-import { reject, resolve, Promise } from 'rsvp';
-import { bind, debounce } from '@ember/runloop';
-import { set, get } from '@ember/object';
-import { typeOf, isPresent, isBlank } from '@ember/utils';
-import layout from '../templates/components/hyper-search';
-import $ from 'jquery';
+import Component from '@glimmer/component';
+import { tracked } from '@glimmer/tracking';
+import { action } from '@ember/object';
+import { isBlank, isPresent } from '@ember/utils';
 
-const { ajax } = $;
-
-/**
- * Returns the key for the query in the cache. Only works in conjunction with
- * Ember.get.
- *
- *
- * @public
- * @param {String} query
- * @return {String} nested key name
- */
-function keyForQuery(query) {
-  return `_cache.${safeKeyString(query)}`;
-}
-
-/**
- * Ensure string does not contain characters that will cause Ember.get to break
- *
- * IE: Replaces periods (.) with dashes (-)
- *
- * @public
- * @param {String} query
- * @return {String} safe key name
-*/
+// Util: safe cache key
 function safeKeyString(query) {
   return query.replace(/\./g, '-');
 }
 
-export default Component.extend({
-  layout,
-  minQueryLength: 3,
-  debounceRate: 0,
-  endpoint: null,
-  resultKey: null,
-  placeholder: null,
+export default class HyperSearchComponent extends Component {
+  constructor() {
+    super(...arguments);
+    console.log('HyperSearchComponent initialized with args:', this.args);
+    // You can add any setup code here if needed
+  }
 
-  init() {
-    this._super(...arguments);
+  // Arguments
+  get minQueryLength() {
+    return this.args.minQueryLength ?? 3;
+  }
+  get debounceRate() {
+    return this.args.debounceRate ?? 0;
+  }
+  get endpoint() {
+    return this.args.endpoint;
+  }
+  get resultKey() {
+    return this.args.resultKey;
+  }
+  get placeholder() {
+    return this.args.placeholder;
+  }
+
+  // State
+  _cache = {};
+  @tracked results = [];
+
+  // Remove all cache on destroy
+  willDestroy() {
+    super.willDestroy?.();
     this._cache = {};
-    this.results = emberArray();
-  },
-
-  willDestroyElement() {
-    this._super(...arguments);
-    this.removeAllFromCache();
-  },
+  }
 
   cache(query, results) {
-    set(this, keyForQuery(query), results);
-    this._handleAction('loadingHandler', false);
-    return resolve(results);
-  },
+    this._cache[safeKeyString(query)] = results;
+    this._handleAction('onLoading', false);
+    return results;
+  }
 
   getCacheForQuery(query) {
-    return get(this, keyForQuery(query));
-  },
+    return this._cache[safeKeyString(query)];
+  }
 
   removeFromCache(query) {
     delete this._cache[safeKeyString(query)];
-    this.notifyPropertyChange('_cache');
-  },
+  }
 
   removeAllFromCache() {
-    delete this._cache;
-    set(this, '_cache', {});
-  },
+    this._cache = {};
+  }
 
   clearResults() {
-    get(this, 'results').clear();
-    this.notifyPropertyChange('results');
-  },
+    this.results = [];
+  }
 
   fetch(query) {
-    if (isBlank(query) || (query.length < get(this, 'minQueryLength'))) {
-      return reject();
+    console.log('fetch called with:', query);
+    if (isBlank(query) || query.length < this.minQueryLength) {
+      return;
     }
-
     let cachedValue = this.getCacheForQuery(query);
-
-    this._handleAction('loadingHandler', true);
+    console.log('cachedValue:', cachedValue);
+    this._handleAction('onLoading', true);
 
     if (isPresent(cachedValue)) {
-      this._handleAction('loadingHandler', false);
-      return resolve(cachedValue);
+      this._handleAction('onLoading', false);
+      return cachedValue;
     } else {
-      return this.requestAndCache(...arguments);
-    }
-  },
-
-  /**
-   * Override to handle the fetching of data. Must return a `Promise`.
-   *
-   * @public
-   * @method request
-   * @param {String} query
-   * @return {Promise}
-   */
-  request(query) {
-    return new Promise((resolve, reject) => {
-      ajax({
-        dataType: 'json',
-        method: 'GET',
-        url: get(this, 'endpoint'),
-        data: { q: query }
-      })
-      .then(resolve, reject);
-    });
-  },
-
-  requestAndCache(query) {
-    return this.request(query)
-      .then((results) => this.cache(query, results))
-      .catch((error) => reject(error));
-  },
-
-  _search(value = this.$('input').val()) {
-    return this.fetch(value)
-      .then(bind(this, this._setResults));
-  },
-
-  _setResults(results) {
-    this._handleAction('handleResults', results);
-
-    return set(this, 'results', results);
-  },
-
-  _handleAction(actionName, ...args) {
-    if (typeOf(get(this, actionName)) === 'function') {
-      get(this, actionName)(...args);
-    } else {
-      // eslint-disable-next-line ember/closure-actions
-      this.sendAction(actionName, ...args);
-    }
-  },
-
-  actions: {
-    search(_event, query) {
-      debounce(this, '_search', query, get(this, 'debounceRate'), true);
-    },
-
-    selectResult(result) {
-      this._handleAction('selectResult', result);
+      console.log('No cache found, making request for:', query);
+      return this.requestAndCache(query);
     }
   }
-});
+
+  async request(query) {
+    // Native fetch as replacement for jQuery.ajax
+    console.log('request called with:', query);
+    let url = this.endpoint;
+    let params = new URLSearchParams({ q: query });
+    console.log('Request URL:', `${url}?${params}`);
+    let response = await fetch(`${url}?${params}`, { method: 'GET' });
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  }
+
+  async requestAndCache(query) {
+    try {
+      let results = await this.request(query);
+      console.log('requestAndCache results:', results);
+      return this.cache(query, results);
+    } catch (error) {
+      return;
+    }
+  }
+
+  @action
+  async search(event) {
+    console.log('search called with:', event);
+    let query = event?.target?.value;
+    let results = await this.fetch(query);
+    if (results) {
+      this._setResults(results);
+    }
+  }
+
+  _setResults(results) {
+    console.log('Setting results:', results);
+    this._handleAction('onResults', results);
+    this.args.handleResults?.(results);
+    this.results = results;
+  }
+
+  // This replaces sendAction; expects closure actions passed as @onSelect, etc.
+  _handleAction(actionName, ...args) {
+    if (typeof this.args[actionName] === 'function') {
+      this.args[actionName](...args);
+    }
+  }
+
+  @action
+  selectResult(result) {
+    this._handleAction('onSelect', result);
+  }
+}

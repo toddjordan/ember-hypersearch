@@ -1,0 +1,39 @@
+<div ...attributes>
+  {{#if (has-block)}}
+    {{! If a block is provided, yield the context to it }}
+    {{! This allows for custom rendering of the component's content }}
+    {{! The context includes properties like results, search, and selectResult }}
+    {{yield this}}
+  {{else}}
+    <form class='hypersearch'>
+      <label for='hypersearch-input' class='hypersearch-label'>Search</label>
+      <input
+        id='hypersearch-input'
+        class='hypersearch-input'
+        name='query'
+        type='text'
+        placeholder={{this.placeholder}}
+        {{on 'input' this.search}}
+      />
+      <ul class='hypersearch-results'>
+        {{#each this.results as |result|}}
+          {{! Each result is rendered as a list item with a button }}
+          {{! The button triggers the selectResult action when clicked }}
+          <li class='hypersearch-result'>
+            <button
+              type='button'
+              class='hypersearch-result-btn'
+              {{on 'click' (fn this.selectResult result)}}
+            >
+              {{#if this.resultKey}}
+                {{get result this.resultKey}}
+              {{else}}
+                {{result}}
+              {{/if}}
+            </button>
+          </li>
+        {{/each}}
+      </ul>
+    </form>
+  {{/if}}
+</div>

@@ -7,10 +7,9 @@ module.exports = function (defaults) {
     // Add options here
     autoImport: {
       webpack: {
-        externals: { jquery: 'jQuery' }
-      }
-    }
-
+        externals: { jquery: 'jQuery' },
+      },
+    },
   });
 
   /*
