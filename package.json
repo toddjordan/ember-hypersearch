@@ -1,6 +1,6 @@
 {
   "name": "ember-hypersearch",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Hyperspeed real-time search with caching",
   "author": "Lauren Tan",
   "directories": {
