@@ -1,8 +1,8 @@
-import Ember from 'ember';
+import { A as emberArray } from '@ember/array';
+import { isBlank } from '@ember/utils';
 import Pretender from 'pretender';
 import faker from 'faker';
 
-const { A: emberArray, isBlank } = Ember;
 const apiUrl = '/api/v1';
 const { stringify } = JSON;
 const ETERNALLY_PRESENT_USER = {
@@ -10,10 +10,14 @@ const ETERNALLY_PRESENT_USER = {
   name: 'Miss Adan Gorczany',
   phone: '882-817-5290 x7462',
   username: 'Xander.Ebert7',
-  website: 'jarret.org'
+  website: 'jarret.org',
 };
 
-function response(json, statusCode = 200, headers = { 'Content-Type': 'application/json' }) {
+function response(
+  json,
+  statusCode = 200,
+  headers = { 'Content-Type': 'application/json' }
+) {
   return [statusCode, headers, stringify(json)];
 }
 
@@ -32,15 +36,17 @@ function sanitize(query = '') {
 export default function setupPretender() {
   const db = seedData([ETERNALLY_PRESENT_USER]);
 
-  return new Pretender(function() {
-    this.get(`${apiUrl}/users`, function(request) {
+  return new Pretender(function () {
+    this.get(`${apiUrl}/users`, function (request) {
       const query = sanitize(request.queryParams.q);
 
       if (isBlank(query)) {
         return response(db);
       }
 
-      return response(db.filter((item) => sanitize(item.name).indexOf(query) !== -1));
+      return response(
+        db.filter((item) => sanitize(item.name).indexOf(query) !== -1)
+      );
     });
   });
 }

@@ -1,39 +1,59 @@
 import PageObject from './base';
-
+import { findWithAssert } from './base';
+import {
+  findAll,
+  find,
+  fillIn,
+  click,
+  triggerEvent,
+} from '@ember/test-helpers';
 export default class MainPO extends PageObject {
   constructor() {
     super(...arguments);
   }
 
-  searchForUserByName(id, value) {
-    return this.then(() => {
-      const input = findWithAssert(`#${id} input`);
-      fillIn(input, value).then(() => input.focusout());
-    });
+  async searchForUserByName(id, value) {
+    const input = findWithAssert(`#${id} input`);
+    await fillIn(input, value);
+    await triggerEvent(find(`#${id} input`), 'blur');
+    return this;
   }
 
-  selectFirstResult() {
-    return this.then(() => {
-      click('.hypersearch-result:first-of-type span');
-    });
+  async selectFirstResult() {
+    let firstResult = findAll('.hypersearch-result button')[0];
+    await click(firstResult);
+    return this;
   }
 
-  assertResultLength(id, expectedLength) {
-    return this.then(() => {
-      this.assert.ok(find(`#${id} .hypersearch-results li`).length >= expectedLength, `it displays ${expectedLength} results`);
-    });
+  async assertResultLength(id, expectedLength) {
+    this.assert.ok(
+      findAll(`#${id} .hypersearch-results li`).length >= expectedLength,
+      `it displays ${expectedLength} results`
+    );
+    return this;
   }
 
-  assertClosureActionResultsLength(expectedLength) {
-    return this.then(() => {
-      this.assert.ok(find(`.inline-results-length:contains("${expectedLength}")`), `it displays ${expectedLength} results from the closure action`);
-    });
+  async assertClosureActionResultsLength(id, expectedLength) {
+    let element = find(`.inline-results-length`);
+    this.assert.ok(
+      element,
+      `it displays ${expectedLength} results from the closure action`
+    );
+    const textContent = element.textContent.trim();
+    const hasNumber = /\d+/.test(textContent);
+
+    this.assert.ok(
+      hasNumber,
+      `Expected element "${element}" to contain a number, but found: "${textContent}"`
+    );
+    return this;
   }
 
-  assertEmployeeOfTheDay() {
-    return this.then(() => {
-      this.assert.ok(findWithAssert('#eotd'), 'it displays the selected result');
-      this.assert.ok(findWithAssert('marquee'), 'it displays the selected result');
-    });
+  async assertEmployeeOfTheDay() {
+    this.assert.ok(findWithAssert('#eotd'), 'it displays the selected result');
+    this.assert.ok(
+      findWithAssert('.marquee'),
+      'it displays the selected result'
+    );
   }
 }

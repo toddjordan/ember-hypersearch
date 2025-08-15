@@ -1,63 +1,71 @@
-/*jshint node:true*/
-module.exports = {
-  scenarios: [
-    {
-      name: 'default',
-      dependencies: { }
-    },
-    {
-      name: 'ember-1.13',
-      dependencies: {
-        'ember': '~1.13.0'
+'use strict';
+
+const { embroiderSafe, embroiderOptimized } = require('@embroider/test-setup');
+
+module.exports = async function () {
+  return {
+    scenarios: [
+      {
+        name: 'ember-lts-3.28',
+        npm: {
+          devDependencies: {
+            'ember-source': '~3.28.0',
+          },
+        },
       },
-      resolutions: {
-        'ember': '~1.13.0'
-      }
-    },
-    {
-      name: 'ember-2.0',
-      dependencies: {
-        'ember': '~2.0.0'
+      {
+        name: 'ember-lts-4.12',
+        npm: {
+          devDependencies: {
+            'ember-source': '~4.12.0',
+          },
+        },
       },
-      resolutions: {
-        'ember': '~2.0.0'
-      }
-    },
-    {
-      name: 'ember-2.1',
-      dependencies: {
-        'ember': '~2.1.0'
+      {
+        name: 'ember-lts-5.12',
+        npm: {
+          devDependencies: {
+            'ember-source': '~5.12.0',
+            'ember-qunit': '^7.0.0',
+            'ember-load-initializers': '^3.0.0',
+            'ember-resolver': '^12.0.0',
+            '@ember/test-helpers': '^5.2.2',
+          },
+        },
       },
-      resolutions: {
-        'ember': '~2.1.0'
-      }
-    },
-    {
-      name: 'ember-release',
-      dependencies: {
-        'ember': 'components/ember#release'
+      {
+        name: 'ember-default-with-jquery',
+        env: {
+          EMBER_OPTIONAL_FEATURES: JSON.stringify({
+            'jquery-integration': true,
+          }),
+        },
+        npm: {
+          devDependencies: {
+            '@ember/jquery': '^1.1.0',
+          },
+        },
       },
-      resolutions: {
-        'ember': 'release'
-      }
-    },
-    {
-      name: 'ember-beta',
-      dependencies: {
-        'ember': 'components/ember#beta'
+      {
+        name: 'ember-classic',
+        env: {
+          EMBER_OPTIONAL_FEATURES: JSON.stringify({
+            'application-template-wrapper': true,
+            'default-async-observers': false,
+            'template-only-glimmer-components': false,
+          }),
+        },
+        npm: {
+          devDependencies: {
+            'ember-source': '~3.28.0',
+          },
+          ember: {
+            edition: 'classic',
+          },
+        },
       },
-      resolutions: {
-        'ember': 'beta'
-      }
-    },
-    {
-      name: 'ember-canary',
-      dependencies: {
-        'ember': 'components/ember#canary'
-      },
-      resolutions: {
-        'ember': 'canary'
-      }
-    }
-  ]
+      embroiderSafe(),
+      embroiderOptimized(),
+    ],
+  };
 };

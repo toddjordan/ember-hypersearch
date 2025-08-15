@@ -1,3 +1,26 @@
+import {
+  find,
+  currentURL,
+  visit,
+  fillIn,
+  settled,
+  pauseTest,
+} from '@ember/test-helpers';
+
+/**
+ * Finds an element matching the selector and asserts its existence.
+ * Throws if not found.
+ * @param {string} selector
+ * @return {Element}
+ */
+export function findWithAssert(selector) {
+  let element = find(selector);
+  if (!element) {
+    throw new Error(`Element not found for selector: ${selector}`);
+  }
+  return element;
+}
+
 export default class PageObject {
   constructor(assert, options) {
     this.assert = assert;
@@ -14,94 +37,47 @@ export default class PageObject {
   }
 
   // assertions
-  assertCurrentUrl(targetUrl = `/${this.options.routeName}`) {
-    return this.then(() => {
-      const currentUrl = currentURL();
-
-      this.assert.equal(currentUrl, targetUrl, 'it redirects to the correct url');
-    });
+  async assertCurrentUrl(targetUrl = `/${this.options.routeName}`) {
+    await settled();
+    const current = currentURL();
+    this.assert.equal(current, targetUrl, 'it redirects to the correct url');
+    return this;
   }
 
-  assertVisitUrl(targetUrl = `/${this.options.routeName}`) {
-    visit(targetUrl);
-
-    return this.assertCurrentUrl(targetUrl);
+  async assertVisitUrl(targetUrl = `/${this.options.routeName}`) {
+    await visit(targetUrl);
+    await this.assertCurrentUrl(targetUrl);
+    return this;
   }
 
   // interactions
-  fillInByName(name, value) {
-    return this.then(() => {
-      const input = this.findInputByName(name);
-
-      fillIn(input, value)
-        .then(() => input.focusout());
-    });
+  async fillInByName(name, value) {
+    const input = this.findInputByName(name);
+    await fillIn(input, value);
+    input.dispatchEvent(new Event('focusout', { bubbles: true }));
+    await settled();
   }
 
   // utils
-  /**
-   * Pauses a test so you can look around within a PageObject chain.
-   *
-   * ```js
-   *  test('foo', function(assert) {
-   *    new SomePage(assert)
-   *      .login()
-   *      .embiggen()
-   *      .pause()
-   *      .doStuff();
-   *  });
-   * ```
-   * @public
-   * @method pause
-   * @param {Void}
-   * @return {this}
-   */
-  pause() {
-    return this.then(() => window.pauseTest());
+  async pause() {
+    await pauseTest();
   }
 
-  /**
-   * Embiggens the testing container for easier inspection.
-   *
-   * @public
-   * @method embiggen
-   * @param {String} testContainerId
-   * @return {this}
-   */
-  embiggen(testContainerId = 'ember-testing-container') {
-    return this.then(() => $(`#${testContainerId}`).css({ width: '100vw', height: '100vh' }));
+  async embiggen(testContainerId = 'ember-testing-container') {
+    await settled();
+    const el = document.getElementById(testContainerId);
+    if (el) {
+      el.style.width = '100vw';
+      el.style.height = '100vh';
+    }
   }
 
-  /**
-   * Throws a breakpoint via debugger within a PageObject chain.
-   *
-   * ```js
-   *  test('foo', function(assert) {
-   *    new SomePage(assert)
-   *      .login()
-   *      .debug()
-   *      .doStuff();
-   *  });
-   * ```
-   *
-   * @public
-   * @method debug
-   * @param {Void}
-   * @return {this}
-   */
-  debug() {
-    // jshint ignore:start
-    const poInstance = this; // deopt Babel so `this` is accessible
-    return this.then((applicationInstance) => {
-      console.info('Access the PageObject with `poInstance`, and the application instance with `applicationInstance`.');
-      debugger;
-      eval();
-    });
-    // jshint ignore:end
-  }
-
-  then(callback) {
-    andThen(callback);
-    return this;
+  async debug() {
+    // eslint-disable-next-line no-unused-vars
+    const poInstance = this;
+    await settled();
+    console.info('Access the PageObject with `poInstance`.');
+    // eslint-disable-next-line no-debugger
+    debugger;
   }
 }

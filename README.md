@@ -131,24 +131,36 @@ A closure action / action name that will receive a boolean which states if resul
 
 Future versions will allow you to persist results locally via `localStorage` or some other storage method. For APIs with data that doesn't change often (e.g. addresses), this will allow for improved UX (search queries will appear to be instantaneous) and reduced load on the endpoint.
 
-## Installation
 
-* `git clone` this repository
-* `npm install`
-* `bower install`
+Compatibility
+------------------------------------------------------------------------------
 
-## Running
+* Ember.js v3.24 or above
+* Ember CLI v3.24 or above
+* Node.js v12 or above
 
-* `ember server`
-* Visit your app at http://localhost:4200.
 
-## Running Tests
+Installation
+------------------------------------------------------------------------------
 
-* `ember test`
-* `ember test --server`
+```
+ember install ember-hypersearch
+```
 
-## Building
 
-* `ember build`
+Usage
+------------------------------------------------------------------------------
 
-For more information on using ember-cli, visit [http://www.ember-cli.com/](http://www.ember-cli.com/).
+[Longer description of how to use the addon in apps.]
+
+
+Contributing
+------------------------------------------------------------------------------
+
+See the [Contributing](CONTRIBUTING.md) guide for details.
+
+
+License
+------------------------------------------------------------------------------
+
+This project is licensed under the [MIT License](LICENSE.md).

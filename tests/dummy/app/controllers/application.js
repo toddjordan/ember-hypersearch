@@ -1,18 +1,18 @@
-import Ember from 'ember';
+import Controller from '@ember/controller';
+import { action } from '@ember/object';
+import { tracked } from '@glimmer/tracking';
 
-const { Controller, set } = Ember;
+export default class ApplicationController extends Controller {
+  @tracked selectedEmployee = null;
+  @tracked results = null;
 
-export default Controller.extend({
-  selectedEmployee: null,
-  results: null,
-
-  actions: {
-    selectResult(result) {
-      set(this, 'selectedEmployee', result);
-    },
-
-    handleResults(results) {
-      set(this, 'results', results);
-    }
+  @action
+  selectResult(result) {
+    this.selectedEmployee = result;
   }
-});
+
+  @action
+  handleResults(results) {
+    this.results = results;
+  }
+}

@@ -1,16 +1,14 @@
-import Ember from 'ember';
+import { Promise } from 'rsvp';
+import { A as emberArray } from '@ember/array';
+import Route from '@ember/routing/route';
 
-const {
-  RSVP: { Promise },
-  $: { getJSON },
-  A: emberArray,
-  Route
-} = Ember;
-
-export default Route.extend({
+export default class ApplicationRoute extends Route {
   model() {
     return new Promise((resolve, reject) => {
-      getJSON('/api/v1/users').then((results) => resolve(emberArray(results)), reject);
+      fetch('/api/v1/users')
+        .then((response) => response.json())
+        .then((results) => resolve(emberArray(results)))
+        .catch(reject);
     });
   }
-});
+}

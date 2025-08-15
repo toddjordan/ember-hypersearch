@@ -5,3 +5,20 @@
 #ember-testing-container input {
   font-size: 32px;
 }
+
+/* Marquee animation */
+.marquee {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: marquee 10s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}

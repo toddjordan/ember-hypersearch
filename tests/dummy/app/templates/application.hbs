@@ -1,48 +1,61 @@
-<h1>Top Secret Employee Database</h1>
+{{page-title "HyperSearch"}}
+
+<h1 id='title'>Top Secret Employee Database</h1>
 <h2>Component - Block</h2>
 
-{{#if selectedEmployee}}
+{{#if this.selectedEmployee}}
   <h3>Employee Of The Day</h3>
-  <p id="eotd">
-    <marquee>{{selectedEmployee.name}}</marquee>
+  <p id='eotd' class='marquee'>
+    {{this.selectedEmployee.name}}
   </p>
 {{/if}}
 
-{{#hyper-search
-    id="component-block"
-    minQueryLength=1
-    endpoint="/api/v1/users"
-    resultKey="name"
-    selectResult=(action "selectResult") as |hypersearch|}}
-  <form class="hypersearch" {{action "commit" on="submit"}}>
-    {{one-way-input
-        class="hypersearch-input"
-        name="query"
-        type="text"
-        update=(action "search" target=hypersearch)
-    }}
-    <ul class="hypersearch-results">
+<HyperSearch
+  id='component-block'
+  @minQueryLength={{1}}
+  @endpoint='/api/v1/users'
+  @resultKey='name'
+  @selectResult={{this.selectResult}}
+  as |hypersearch|
+>
+
+  <form class='hypersearch'>
+    <label for='hypersearch-query'>Search Query</label>
+    <input
+      id='hypersearch-query'
+      class='hypersearch-input'
+      name='query'
+      type='text'
+      {{on 'input' hypersearch.search}}
+    />
+    <ul class='hypersearch-results'>
       {{#if hypersearch.results}}
-        <p id="result-count">Found {{hypersearch.results.length}} results.</p>
+        <p id='result-count'>Found {{hypersearch.results.length}} results.</p>
       {{/if}}
 
+      {{#if (has-block)}}
+        {{! If a block is provided, yield the context to it }}
+        {{! This allows for custom rendering of the component's content }}
+        {{yield hypersearch}}
+      {{/if}}
       {{#each hypersearch.results as |result|}}
-        <li class="hypersearch-result">
-          <span {{action (action "selectResult") result on="click"}}>
+
+        <li class='hypersearch-result'>
+          <button type='button' {{on 'click' (fn this.selectResult result)}}>
             {{#if hypersearch.resultKey}}
               {{get result hypersearch.resultKey}}
             {{else}}
               {{result}}
             {{/if}}
-          </span>
+          </button>
         </li>
       {{/each}}
     </ul>
-    <button type="submit">Submit</button>
+    <button type='submit'>Submit</button>
   </form>
-{{/hyper-search}}
+</HyperSearch>
 
-<h2>All Users ({{model.length}})</h2>
+<h2>All Users ({{this.model.length}})</h2>
 <table>
   <thead>
     <tr>
@@ -51,7 +64,7 @@
     </tr>
   </thead>
   <tbody>
-    {{#each model as |user|}}
+    {{#each this.model as |user|}}
       <tr>
         <td>{{user.name}}</td>
         <td>{{user.email}}</td>
@@ -60,20 +73,20 @@
   </tbody>
 </table>
 
-<hr>
+<hr />
 
 <h2>Component - Inline</h2>
-<div class="inline-results-length">
-  {{results.length}}
+<div class='inline-results-length'>
+  {{! This will log the length of the results array to the console }}
+  {{this.results.length}}
 </div>
 
-{{hyper-search
-    id="component-inline"
-    debounceRate=1000
-    endpoint="/api/v1/users"
-    resultKey="email"
-    selectResult=(action "selectResult")
-    handleResults=(action "handleResults")
-}}
-
+<HyperSearch
+  id='component-inline'
+  @debounceRate={{1000}}
+  @endpoint='/api/v1/users'
+  @resultKey='email'
+  @selectResult={{this.selectResult}}
+  @handleResults={{this.handleResults}}
+/>
 {{outlet}}
