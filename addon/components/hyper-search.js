@@ -11,7 +11,6 @@ function safeKeyString(query) {
 export default class HyperSearchComponent extends Component {
   constructor() {
     super(...arguments);
-    console.log('HyperSearchComponent initialized with args:', this.args);
     // You can add any setup code here if needed
   }
 
@@ -65,29 +64,24 @@ export default class HyperSearchComponent extends Component {
   }
 
   fetch(query) {
-    console.log('fetch called with:', query);
     if (isBlank(query) || query.length < this.minQueryLength) {
       return;
     }
     let cachedValue = this.getCacheForQuery(query);
-    console.log('cachedValue:', cachedValue);
     this._handleAction('onLoading', true);
 
     if (isPresent(cachedValue)) {
       this._handleAction('onLoading', false);
       return cachedValue;
     } else {
-      console.log('No cache found, making request for:', query);
       return this.requestAndCache(query);
     }
   }
 
   async request(query) {
     // Native fetch as replacement for jQuery.ajax
-    console.log('request called with:', query);
     let url = this.endpoint;
     let params = new URLSearchParams({ q: query });
-    console.log('Request URL:', `${url}?${params}`);
     let response = await fetch(`${url}?${params}`, { method: 'GET' });
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
@@ -96,7 +90,6 @@ export default class HyperSearchComponent extends Component {
   async requestAndCache(query) {
     try {
       let results = await this.request(query);
-      console.log('requestAndCache results:', results);
       return this.cache(query, results);
     } catch (error) {
       return;
@@ -105,7 +98,6 @@ export default class HyperSearchComponent extends Component {
 
   @action
   async search(event) {
-    console.log('search called with:', event);
     let query = event?.target?.value;
     let results = await this.fetch(query);
     if (results) {
@@ -114,7 +106,6 @@ export default class HyperSearchComponent extends Component {
   }
 
   _setResults(results) {
-    console.log('Setting results:', results);
     this._handleAction('onResults', results);
     this.args.handleResults?.(results);
     this.results = results;

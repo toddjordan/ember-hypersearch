@@ -80,7 +80,6 @@ module('Integration | Component | hyper-search', function (hooks) {
     this.set('endpoint', '/api/v1/users');
     let searchResults = null;
     this.set('onResults', (results) => {
-      console.log('onResults called with:', results);
       searchResults = results;
     });
 
@@ -100,7 +99,6 @@ module('Integration | Component | hyper-search', function (hooks) {
     this.set('endpoint', '/api/v1/emails');
     let searchResults = null;
     this.set('onResults', (results) => {
-      console.log('onResults called with:', results);
       searchResults = results;
     });
 
